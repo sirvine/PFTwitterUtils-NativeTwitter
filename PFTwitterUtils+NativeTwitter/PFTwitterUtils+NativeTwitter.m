@@ -31,7 +31,7 @@ TwitterLogInErrorBlock _nativeLogInErrorBlock;
 + (void)logInWithAccount:(ACAccount *)twitterAccount
 {
     TWAPIManager *twitterAPIManager = [[TWAPIManager alloc] init];
-    
+
     [twitterAPIManager
      performReverseAuthForAccount:twitterAccount
      withHandler:^(NSData *responseData, NSError *error) {
@@ -55,7 +55,7 @@ TwitterLogInErrorBlock _nativeLogInErrorBlock;
     ACAccountType *twitterType = [accountStore
                                   accountTypeWithAccountTypeIdentifier:
                                   ACAccountTypeIdentifierTwitter];
-    
+
     ACAccountStoreRequestAccessCompletionHandler completionHandler =
     ^(BOOL granted, NSError *error) {
         if (granted) {
@@ -70,16 +70,16 @@ TwitterLogInErrorBlock _nativeLogInErrorBlock;
                     dispatch_async(dispatch_get_main_queue(), ^{
                         completionBlock(NO, nil);
                     });
-                    
+
                     [PFTwitterUtils twitterErrorOccurred:TwitterLogInErrorNoAccountsOnDevice];
                 }
             }
         }
-        
+
         // We were denied by the user...
         else {
             [PFTwitterUtils twitterErrorOccurred:TwitterLogInErrorAccountAccessDenied];
-            
+
             // Pass back nothing
             if (completionBlock) {
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -88,20 +88,10 @@ TwitterLogInErrorBlock _nativeLogInErrorBlock;
             }
         }
     };
-    
-    // iOS 5 and iOS 6 have different APIs
-    if ([accountStore
-         respondsToSelector:@selector(requestAccessToAccountsWithType:
-                                      options:
-                                      completion:)]) {
-             [accountStore requestAccessToAccountsWithType:twitterType
-                                                    options:nil
-                                                 completion:completionHandler];
-         }
-    else {
-        [accountStore requestAccessToAccountsWithType:twitterType
-                                 withCompletionHandler:completionHandler];
-    }
+
+   [accountStore requestAccessToAccountsWithType:twitterType
+                                          options:nil
+                                       completion:completionHandler];
 }
 
 + (void)twitterReverseAuthResponseReceived:(NSData *)responseData
@@ -110,15 +100,15 @@ TwitterLogInErrorBlock _nativeLogInErrorBlock;
         NSString *responseStr = [[NSString alloc]
                                  initWithData:responseData
                                  encoding:NSUTF8StringEncoding];
-        
+
         NSArray *parts = [responseStr componentsSeparatedByString:@"&"];
-        
+
         if (parts.count == 4) {
             NSString *oauthToken        = [[parts objectAtIndex:0] stringByReplacingOccurrencesOfString:@"oauth_token=" withString:@""];
             NSString *oauthTokenSecret  = [[parts objectAtIndex:1] stringByReplacingOccurrencesOfString:@"oauth_token_secret=" withString:@""];
             NSString *userId            = [[parts objectAtIndex:2] stringByReplacingOccurrencesOfString:@"user_id=" withString:@""];
             NSString *screenName        = [[parts objectAtIndex:3] stringByReplacingOccurrencesOfString:@"screen_name=" withString:@""];
-            
+
             [PFTwitterUtils logInWithTwitterId:userId
                                     screenName:screenName
                                      authToken:oauthToken
@@ -156,38 +146,42 @@ TwitterLogInErrorBlock _nativeLogInErrorBlock;
 + (void)showDefaultErrorAlert:(TwitterLogInError)error
 {
     dispatch_async(dispatch_get_main_queue(), ^{
-        if (error == TwitterLogInErrorAccountAccessDenied) {
-            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign in Failed"
-                                                                message:@"In order to sign in with Twitter, you will need to give this app access to the account. You can give this app access in your devices \"Settings\"."
-                                                               delegate:nil
-                                                      cancelButtonTitle:@"OK"
-                                                      otherButtonTitles:nil];
-            [alertView show];
-        }
-        else if (error == TwitterLogInErrorNetworkError) {
-            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign in Failed"
-                                                                message:@"We had an issue authenticating with Twitter. Check your internet connection and verify that your Twitter account is working."
-                                                               delegate:nil
-                                                      cancelButtonTitle:@"OK"
-                                                      otherButtonTitles:nil];
-            [alertView show];
-        }
-        else if (error == TwitterLogInErrorAuthenticationError) {
-            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign in Failed"
-                                                                message:@"Please verify that you are signed into Twitter in your devices \"Settings\"."
-                                                               delegate:nil
-                                                      cancelButtonTitle:@"OK"
-                                                      otherButtonTitles:nil];
-            [alertView show];
-        }
-        else if (error == TwitterLogInErrorNoAccountsOnDevice) {
-            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign in Failed"
-                                                                message:@"No Twitter accounts were found on your device."
-                                                               delegate:nil
-                                                      cancelButtonTitle:@"OK"
-                                                      otherButtonTitles:nil];
-            [alertView show];
-        }
+      NSString *accessErrorMessage = NSLocalizedString(@"In order to sign in with Twitter, you will need to give this app access to the account. You can give this app access in your device's \"Settings\".", nil);
+      NSString *networkErrorMessage = NSLocalizedString(@"We had an issue authenticating with Twitter. Check your internet connection and verify that your Twitter account is working.", nil);
+      NSString *authErrorMessage = NSLocalizedString(@"Please verify that you are signed into Twitter in your devices \"Settings\".", nil);
+      NSString *noAccountsErrorMessage = NSLocalizedString(@"No Twitter accounts were found on your device.", nil);
+      if (error == TwitterLogInErrorAccountAccessDenied) {
+          UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign In"
+                                                              message:accessErrorMessage
+                                                             delegate:nil
+                                                    cancelButtonTitle:@"OK"
+                                                    otherButtonTitles:nil];
+          [alertView show];
+      }
+      else if (error == TwitterLogInErrorNetworkError) {
+          UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign In"
+                                                              message:networkErrorMessage
+                                                             delegate:nil
+                                                    cancelButtonTitle:@"OK"
+                                                    otherButtonTitles:nil];
+          [alertView show];
+      }
+      else if (error == TwitterLogInErrorAuthenticationError) {
+          UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign In"
+                                                              message:authErrorMessage
+                                                             delegate:nil
+                                                    cancelButtonTitle:@"OK"
+                                                    otherButtonTitles:nil];
+          [alertView show];
+      }
+      else if (error == TwitterLogInErrorNoAccountsOnDevice) {
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Twitter Sign"
+                                                            message:noAccountsErrorMessage
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+        [alertView show];
+      }
     });
 }
 
