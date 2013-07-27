@@ -35,7 +35,7 @@
     NSMutableString *result = [NSMutableString string];
     const char *p = [self UTF8String];
     unsigned char c;
-    
+
     for(; (c = *p); p++)
     {
         switch(c)
@@ -58,10 +58,7 @@
 
 + (NSString *)ab_GUID
 {
-    CFUUIDRef u = CFUUIDCreate(kCFAllocatorDefault);
-    CFStringRef s = CFUUIDCreateString(kCFAllocatorDefault, u);
-    CFRelease(u);
-    return [(NSString *)s autorelease];
+  return [[NSUUID UUID] UUIDString];
 }
 
 @end
