@@ -11,7 +11,7 @@ Native Twitter Log In functionality for the Parse iOS SDK.
 
 ## Usage
 
-Native Twitter log in is a bit complicated so there are a few steps you need to take. 
+Native Twitter log in is a bit complicated so there are a few steps you need to take.
 
 First, provide a success handler (this is pretty standard).
 
@@ -23,10 +23,10 @@ First, provide a success handler (this is pretty standard).
 ```
 
 The second step, is to actually request the Twitter accounts that are stored on the device. You'll most likely want to show the user a list of the accounts so they can choose which account they want to log into. This is an array of `ACAccount` objects. You can get the Twitter username by using the `username` property.
- 
+
 ```obj-c
 // Get twitter accounts on device (this will prompt the user)
-[PFTwitterUtils getTwitterAccounts:^(NSArray *twitterAccounts) {
+[PFTwitterUtils getTwitterAccounts:^(BOOL accountsWereFound, NSArray *twitterAccounts) {
 	// Some method that displays an action sheet...
     [self promptUserToChooseNativeTwitterAccount:twitterAccounts];
 }];
